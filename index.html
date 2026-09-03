@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yasith Wijesuriya - Salary Payment Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .zoomable-img {
+            transition: transform 0.2s;
+            cursor: zoom-in;
+        }
+
+        .zoomable-img:hover {
+            transform: scale(4);
+            z-index: 10;
+            position: relative;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 font-sans text-slate-800">
+
+    <div class="max-w-5xl mx-auto p-6 my-10 bg-white shadow-lg rounded-2xl border border-slate-100">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center border-b pb-5 mb-6 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Yasith Wijesuriya - Salary Record</h1>
+                <p class="text-sm text-slate-500">Monthly Target: LKR 140,000.00</p>
+            </div>
+            <button onclick="openModal()"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all flex items-center gap-2">
+                + Add Payment & Slip
+            </button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider">Total Received</p>
+                <p id="totalReceived" class="text-2xl font-bold text-blue-900 mt-1">LKR 0.00</p>
+            </div>
+            <div class="bg-amber-50 p-4 rounded-xl border border-amber-100">
+                <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Remaining Amount</p>
+                <p id="remainingAmount" class="text-2xl font-bold text-amber-900 mt-1">LKR 140,000.00</p>
+            </div>
+            <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Status</p>
+                <p id="statusText" class="text-xl font-bold text-emerald-900 mt-1">Pending</p>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-100 text-slate-600 text-sm">
+                        <th class="p-3 font-semibold">Date</th>
+                        <th class="p-3 font-semibold">Description</th>
+                        <th class="p-3 font-semibold">PDF Slip</th>
+                        <th class="p-3 font-semibold text-right">Amount (LKR)</th>
+                    </tr>
+                </thead>
+                <tbody id="recordTableBody" class="divide-y divide-slate-200 text-sm align-middle">
+                    <!-- Loaded via API -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="entryModal"
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-lg p-6 rounded-2xl shadow-xl">
+            <h3 class="text-lg font-bold mb-4">Add Payment & Slip Record</h3>
+            <form id="salaryForm" onsubmit="addRecord(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Date</label>
+                    <input type="date" id="dateInput" required
+                        class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Description (e.g., 1st
+                        Installment)</label>
+                    <input type="text" id="descInput" placeholder="1st Installment" required
+                        class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">PDF Slip Screenshot</label>
+                    <input type="file" id="imageInput" accept="image/*" required
+                        class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Amount (LKR)</label>
+                    <input type="number" id="amountInput" value="70000" required
+                        class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeModal()"
+                        class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium">Cancel</button>
+                    <button type="submit" id="submitBtn"
+                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center gap-2">
+                        <span id="btnText">Save Record</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // REPLACE THIS URL WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxxwsyFQ5gwqSYxcBTl4XldYxy4yqMQ2bHSHytulsivvij2X4t6t9WZI3G2WbdYuU5gIw/exec";
+        const TARGET = 140000;
+        let records = [];
+
+        function openModal() {
+            document.getElementById('entryModal').classList.remove('hidden');
+            document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+        }
+
+        function closeModal() {
+            document.getElementById('entryModal').classList.add('hidden');
+        }
+
+        function fetchRecords() {
+            fetch(SCRIPT_URL)
+                .then(res => res.json())
+                .then(data => {
+                    records = data;
+                    renderTable();
+                })
+                .catch(err => console.error("Error fetching data:", err));
+        }
+
+        function addRecord(e) {
+            e.preventDefault();
+            const date = document.getElementById('dateInput').value;
+            const description = document.getElementById('descInput').value;
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select an image.');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            document.getElementById('btnText').innerText = 'Uploading to Drive...';
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const payload = {
+                    date: date,
+                    description: description,
+                    amount: amount,
+                    imagebase64: event.target.result,
+                    mimetype: file.type,
+                    filename: file.name
+                };
+
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                })
+                    .then(res => res.json())
+                    .then(response => {
+                        submitBtn.disabled = false;
+                        document.getElementById('btnText').innerText = 'Save Record';
+                        closeModal();
+                        e.target.reset();
+                        fetchRecords(); // Refresh table
+                    })
+                    .catch(err => {
+                        alert('Error uploading data!');
+                        submitBtn.disabled = false;
+                        document.getElementById('btnText').innerText = 'Save Record';
+                    });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('recordTableBody');
+            tbody.innerHTML = '';
+
+            let total = 0;
+            records.forEach(r => {
+                const amt = parseFloat(r.amount) || 0;
+                total += amt;
+
+                // Convert Google Drive view URL to embeddable / direct view if possible, or link it
+                const imgTag = r.imageUrl ? `<a href="${r.imageUrl}" target="_blank"><img src="${r.imageUrl}" alt="Slip" class="h-10 w-16 object-cover rounded border zoomable-img" title="Click to view full size"></a>` : 'None';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 whitespace-nowrap">${r.date}</td>
+                        <td class="p-3 font-medium text-slate-800">${r.description}</td>
+                        <td class="p-3 align-middle">${imgTag}</td>
+                        <td class="p-3 text-right font-semibold text-slate-900">LKR ${amt.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalReceived').innerText = `LKR ${total.toLocaleString()}`;
+            const remaining = TARGET - total;
+            document.getElementById('remainingAmount').innerText = `LKR ${remaining > 0 ? remaining.toLocaleString() : 0}`;
+
+            const statusText = document.getElementById('statusText');
+            if (total >= TARGET) {
+                statusText.innerText = "Completed ✓";
+                statusText.className = "text-xl font-bold text-emerald-600 mt-1";
+            } else {
+                statusText.innerText = "Pending...";
+                statusText.className = "text-xl font-bold text-amber-600 mt-1";
+            }
+        }
+
+        // Load data on page load
+        fetchRecords();
+    </script>
+</body>
+
+</html>
