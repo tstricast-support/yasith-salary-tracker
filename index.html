@@ -1,228 +1,243 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="si">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yasith Wijesuriya - Salary Payment Dashboard</title>
+    <title>Salary & OT Tracker 2026</title>
+    <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .zoomable-img {
-            transition: transform 0.2s;
-            cursor: zoom-in;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-        .zoomable-img:hover {
-            transform: scale(4);
-            z-index: 10;
-            position: relative;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        body {
+            font-family: 'Poppins', sans-serif;
         }
     </style>
 </head>
 
-<body class="bg-slate-50 font-sans text-slate-800">
+<body class="bg-slate-100 min-h-screen p-4 md:p-8">
 
-    <div class="max-w-5xl mx-auto p-6 my-10 bg-white shadow-lg rounded-2xl border border-slate-100">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden p-6 md:p-8">
+
         <!-- Header -->
-        <div class="flex flex-col md:flex-row justify-between items-center border-b pb-5 mb-6 gap-4">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Salary & OT Management Tracker</h1>
+            <p class="text-slate-500 text-sm mt-1">මාසික වැටුප් සහ අතිකාල (OT) වාර්තාකරණය</p>
+        </div>
+
+        <!-- Form Section -->
+        <form id="salaryForm" onsubmit="addRecord(event)"
+            class="bg-slate-50 p-6 rounded-lg border border-slate-200 mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <!-- Month Selection -->
             <div>
-                <h1 class="text-2xl font-bold text-slate-900">Yasith Wijesuriya - Salary Record</h1>
-                <p class="text-sm text-slate-500">Monthly Target: LKR 140,000.00</p>
+                <label class="block text-sm font-medium text-slate-700 mb-1">මාසය (Month)</label>
+                <select id="month" required
+                    class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">මාසය තෝරන්න</option>
+                    <option value="January 2026">January 2026</option>
+                    <option value="February 2026">February 2026</option>
+                    <option value="March 2026">March 2026</option>
+                    <option value="April 2026">April 2026</option>
+                    <option value="May 2026">May 2026</option>
+                    <option value="June 2026">June 2026</option>
+                    <option value="July 2026">July 2026</option>
+                    <option value="August 2026">August 2026</option>
+                    <option value="September 2026">September 2026</option>
+                    <option value="October 2026">October 2026</option>
+                    <option value="November 2026">November 2026</option>
+                    <option value="December 2026">December 2026</option>
+                </select>
             </div>
-            <button onclick="openModal()"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all flex items-center gap-2">
-                + Add Payment & Slip
-            </button>
-        </div>
 
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider">Total Received</p>
-                <p id="totalReceived" class="text-2xl font-bold text-blue-900 mt-1">LKR 0.00</p>
+            <!-- Date Selection -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">දිනය (Date)</label>
+                <input type="date" id="date" required
+                    class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <div class="bg-amber-50 p-4 rounded-xl border border-amber-100">
-                <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Remaining Amount</p>
-                <p id="remainingAmount" class="text-2xl font-bold text-amber-900 mt-1">LKR 140,000.00</p>
-            </div>
-            <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Status</p>
-                <p id="statusText" class="text-xl font-bold text-emerald-900 mt-1">Pending</p>
-            </div>
-        </div>
 
-        <!-- Table -->
-        <div class="overflow-x-auto rounded-xl border border-slate-200">
-            <table class="w-full text-left border-collapse">
+            <!-- Basic Salary -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">මූලික වැටුප (Basic Salary)</label>
+                <input type="number" id="basic" step="0.01" placeholder="ဥပදාන: 50000" oninput="calculateTotal()"
+                    required
+                    class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <!-- OT Amount -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">අතිකාල මුදල (OT Amount)</label>
+                <input type="number" id="ot" step="0.01" placeholder="උපදාන: 25000" oninput="calculateTotal()" required
+                    class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <!-- Total Amount -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">මුළු එකතුව (Total)</label>
+                <input type="text" id="total" readonly
+                    class="w-full px-3 py-2 bg-slate-200 border border-slate-300 rounded-md text-slate-700 font-semibold cursor-not-allowed">
+            </div>
+
+            <!-- Slip Image Upload -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Slip එකේ පින්තූරය (Image)</label>
+                <input type="file" id="slipImage" accept="image/*" required
+                    class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            </div>
+
+            <!-- Submit Button -->
+            <div class="md:col-span-2 mt-2">
+                <button type="submit" id="submitBtn"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-md transition duration-200 shadow-md">
+                    වාර්තාව සුරකින්න (Save Record)
+                </button>
+            </div>
+        </form>
+
+        <!-- Records Table Section -->
+        <div class="overflow-x-auto">
+            <h2 class="text-lg font-semibold text-slate-700 mb-3">පෙර වාර්තා (Previous Records)</h2>
+            <table class="w-full text-left border-collapse border border-slate-200">
                 <thead>
-                    <tr class="bg-slate-100 text-slate-600 text-sm">
-                        <th class="p-3 font-semibold">Date</th>
-                        <th class="p-3 font-semibold">Description</th>
-                        <th class="p-3 font-semibold">PDF Slip</th>
-                        <th class="p-3 font-semibold text-right">Amount (LKR)</th>
+                    <tr class="bg-slate-100 text-slate-700 text-sm">
+                        <th class="border border-slate-200 p-2.5">මාසය</th>
+                        <th class="border border-slate-200 p-2.5">මූලික වැටුප</th>
+                        <th class="border border-slate-200 p-2.5">OT</th>
+                        <th class="border border-slate-200 p-2.5">මුළු එකතුව</th>
+                        <th class="border border-slate-200 p-2.5">දිනය</th>
+                        <th class="border border-slate-200 p-2.5">Slip එක</th>
                     </tr>
                 </thead>
-                <tbody id="recordTableBody" class="divide-y divide-slate-200 text-sm align-middle">
-                    <!-- Loaded via API -->
+                <tbody id="recordsTableBody" class="text-sm text-slate-600">
+                    <!-- Data will be loaded dynamically via JavaScript -->
+                    <tr>
+                        <td colspan="6" class="text-center p-4 text-slate-400">දත්ත ಲೋඩ් වෙමින් පවතී...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
+
     </div>
 
-    <!-- Modal -->
-    <div id="entryModal"
-        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white w-full max-w-lg p-6 rounded-2xl shadow-xl">
-            <h3 class="text-lg font-bold mb-4">Add Payment & Slip Record</h3>
-            <form id="salaryForm" onsubmit="addRecord(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Date</label>
-                    <input type="date" id="dateInput" required
-                        class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Description (e.g., 1st
-                        Installment)</label>
-                    <input type="text" id="descInput" placeholder="1st Installment" required
-                        class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">PDF Slip Screenshot</label>
-                    <input type="file" id="imageInput" accept="image/*" required
-                        class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Amount (LKR)</label>
-                    <input type="number" id="amountInput" value="70000" required
-                        class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" onclick="closeModal()"
-                        class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium">Cancel</button>
-                    <button type="submit" id="submitBtn"
-                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center gap-2">
-                        <span id="btnText">Save Record</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
+    <!-- JavaScript Logic -->
     <script>
-        // REPLACE THIS URL WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL
+        // මෙහි ඔබේ Google Apps Script එකේ Deploy කළ Web App URL එක දමන්න
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzyLCaYl-h4uUUnTyRxTVZZDt7OaN8UGqPwoRtuIWBl1doJY-BmzCugd4hHy-qGOoe09g/exec";
-        const TARGET = 140000;
-        let records = [];
 
-        function openModal() {
-            document.getElementById('entryModal').classList.remove('hidden');
-            document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+        // Total එක ස්වයංක්‍රීයව ගණනය කිරීම
+        function calculateTotal() {
+            let basic = parseFloat(document.getElementById('basic').value) || 0;
+            let ot = parseFloat(document.getElementById('ot').value) || 0;
+            let total = basic + ot;
+            document.getElementById('total').value = total.toFixed(2);
         }
 
-        function closeModal() {
-            document.getElementById('entryModal').classList.add('hidden');
-        }
+        // පෝරමය Submit කරන විට ක්‍රියාත්මක වන කොටස
+        function addRecord(event) {
+            event.preventDefault();
 
-        function fetchRecords() {
-            fetch(SCRIPT_URL)
-                .then(res => res.json())
-                .then(data => {
-                    records = data;
-                    renderTable();
-                })
-                .catch(err => console.error("Error fetching data:", err));
-        }
-
-        function addRecord(e) {
-            e.preventDefault();
-            const date = document.getElementById('dateInput').value;
-            const description = document.getElementById('descInput').value;
-            const amount = parseFloat(document.getElementById('amountInput').value);
-            const fileInput = document.getElementById('imageInput');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert('Please select an image.');
-                return;
-            }
-
-            const submitBtn = document.getElementById('submitBtn');
+            let submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            document.getElementById('btnText').innerText = 'Uploading to Drive...';
+            submitBtn.innerText = "රඳවා තබාගනිමින් පවතී...";
 
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                const payload = {
+            let month = document.getElementById('month').value;
+            let date = document.getElementById('date').value;
+            let basic = document.getElementById('basic').value;
+            let ot = document.getElementById('ot').value;
+            let total = document.getElementById('total').value;
+            let fileInput = document.getElementById('slipImage');
+
+            let file = fileInput.files[0];
+            let reader = new FileReader();
+
+            reader.onload = function (e) {
+                let base64Image = e.target.result;
+                let payload = {
+                    month: month,
                     date: date,
-                    description: description,
-                    amount: amount,
-                    imagebase64: event.target.result,
-                    mimetype: file.type,
-                    filename: file.name
+                    basic: basic,
+                    ot: ot,
+                    total: total,
+                    image: base64Image,
+                    fileName: file.name,
+                    mimeType: file.type
                 };
 
                 fetch(SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors', // Google Apps Script CORS මඟහරවා ගැනීමට
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify(payload)
                 })
-                    .then(res => res.json())
                     .then(response => {
+                        alert('වාර්තාව සාර්ථකව සුරකින ලදී!');
+                        document.getElementById('salaryForm').reset();
+                        document.getElementById('total').value = '';
                         submitBtn.disabled = false;
-                        document.getElementById('btnText').innerText = 'Save Record';
-                        closeModal();
-                        e.target.reset();
-                        fetchRecords(); // Refresh table
+                        submitBtn.innerText = "වාර්තාව සුරකින්න (Save Record)";
+                        fetchRecords(); // ඩේටා අලුත් කර පෙන්වීම
                     })
-                    .catch(err => {
-                        alert('Error uploading data!');
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('දෝෂයක් ඇති විය. කරුණාකර නැවත උත්සාහ කරන්න.');
                         submitBtn.disabled = false;
-                        document.getElementById('btnText').innerText = 'Save Record';
+                        submitBtn.innerText = "වාර්තාව සුරකින්න (Save Record)";
                     });
             };
+
             reader.readAsDataURL(file);
         }
 
-        function renderTable() {
-            const tbody = document.getElementById('recordTableBody');
-            tbody.innerHTML = '';
+        // Google Sheet එකෙන් ඩේටා ගෙනவந்து Table එකට පෙන්වීම
+        function fetchRecords() {
+            fetch(SCRIPT_URL)
+                .then(response => response.json())
+                .then(data => {
+                    let tbody = document.getElementById('recordsTableBody');
+                    tbody.innerHTML = '';
 
-            let total = 0;
-            records.forEach(r => {
-                const amt = parseFloat(r.amount) || 0;
-                total += amt;
+                    if (data.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-slate-400">වාර්තා කිසිවක් හමු නොවීය.</td></tr>`;
+                        return;
+                    }
 
-                // Convert Google Drive view URL to embeddable / direct view if possible, or link it
-                const imgTag = r.imageUrl ? `<a href="${r.imageUrl}" target="_blank"><img src="${r.imageUrl}" alt="Slip" class="h-10 w-16 object-cover rounded border zoomable-img" title="Click to view full size"></a>` : 'None';
+                    let currentDate = new Date();
 
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50">
-                        <td class="p-3 whitespace-nowrap">${r.date}</td>
-                        <td class="p-3 font-medium text-slate-800">${r.description}</td>
-                        <td class="p-3 align-middle">${imgTag}</td>
-                        <td class="p-3 text-right font-semibold text-slate-900">LKR ${amt.toLocaleString()}</td>
-                    </tr>
-                `;
-            });
+                    data.forEach(row => {
+                        let tr = document.createElement('tr');
+                        tr.className = "border-b border-slate-200 hover:bg-slate-50";
 
-            document.getElementById('totalReceived').innerText = `LKR ${total.toLocaleString()}`;
-            const remaining = TARGET - total;
-            document.getElementById('remainingAmount').innerText = `LKR ${remaining > 0 ? remaining.toLocaleString() : 0}`;
+                        // මාසය පහු වී ඇත්දැයි බැලීම (Record Date එක වත්මන් මාසයට වඩා පැරණි නම් පේළිය රතු කිරීම)
+                        let recordDate = new Date(row.date);
+                        if (recordDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)) {
+                            tr.className += " bg-red-100 hover:bg-red-200 text-red-800 font-medium";
+                        }
 
-            const statusText = document.getElementById('statusText');
-            if (total >= TARGET) {
-                statusText.innerText = "Completed ✓";
-                statusText.className = "text-xl font-bold text-emerald-600 mt-1";
-            } else {
-                statusText.innerText = "Pending...";
-                statusText.className = "text-xl font-bold text-amber-600 mt-1";
-            }
+                        tr.innerHTML = `
+                        <td class="border border-slate-200 p-2.5">${row.month}</td>
+                        <td class="border border-slate-200 p-2.5">Rs. ${parseFloat(row.basic).toLocaleString()}</td>
+                        <td class="border border-slate-200 p-2.5">Rs. ${parseFloat(row.ot).toLocaleString()}</td>
+                        <td class="border border-slate-200 p-2.5 font-semibold">Rs. ${parseFloat(row.total).toLocaleString()}</td>
+                        <td class="border border-slate-200 p-2.5">${row.date}</td>
+                        <td class="border border-slate-200 p-2.5">
+                            ${row.image ? `<a href="${row.image}" target="_blank" class="text-indigo-600 underline hover:text-indigo-800">බැලීම</a>` : 'නැත'}
+                        </td>
+                    `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.getElementById('recordsTableBody').innerHTML = `<tr><td colspan="6" class="text-center p-4 text-red-500">දත්ත ලබාගැනීමේ දෝෂයක් ඇති විය.</td></tr>`;
+                });
         }
 
-        // Load data on page load
-        fetchRecords();
+        // වෙබ් අඩවිය Load වූ වහාම දත්ත ටේබල් එකට ගෙන ඒම
+        window.onload = fetchRecords;
     </script>
 </body>
 
